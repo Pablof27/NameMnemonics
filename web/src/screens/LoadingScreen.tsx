@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { DrillBoard } from '../components/DrillBoard'
 import { MEMORY_TIPS } from '../tips'
 
 interface Props {
@@ -11,6 +12,13 @@ interface Props {
 
 export function LoadingScreen({ loaded, total, error, onRetry, onCancel }: Props) {
   const [tip] = useState(() => MEMORY_TIPS[Math.floor(Math.random() * MEMORY_TIPS.length)])
+  const [warmUp, setWarmUp] = useState(false)
+
+  // Short loads just show a tip; longer ones turn the wait into practice.
+  useEffect(() => {
+    const timer = setTimeout(() => setWarmUp(true), 1500)
+    return () => clearTimeout(timer)
+  }, [])
 
   if (error) {
     return (
@@ -36,7 +44,7 @@ export function LoadingScreen({ loaded, total, error, onRetry, onCancel }: Props
   return (
     <div className="screen center">
       <div className="card narrow">
-        <h2>Generating faces…</h2>
+        <h2>Guests are arriving…</h2>
         <div
           className="progress"
           role="progressbar"
@@ -50,9 +58,16 @@ export function LoadingScreen({ loaded, total, error, onRetry, onCancel }: Props
         <p className="muted">
           {loaded} of {total} ready
         </p>
-        <p className="tip">
-          <strong>Tip · {tip.title}.</strong> {tip.text}
-        </p>
+        {warmUp ? (
+          <div className="warm-up">
+            <p className="section-title">Warm up while you wait</p>
+            <DrillBoard />
+          </div>
+        ) : (
+          <p className="tip">
+            <strong>Tip · {tip.title}.</strong> {tip.text}
+          </p>
+        )}
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
           Cancel
         </button>

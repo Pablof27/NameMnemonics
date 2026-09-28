@@ -10,7 +10,7 @@ export interface GeneratedFace {
 // The backend downloads one face at a time, so a few parallel requests are enough to keep it busy.
 const PARALLEL_REQUESTS = 3
 
-async function fetchFace(signal: AbortSignal): Promise<GeneratedFace> {
+export async function fetchFace(signal: AbortSignal): Promise<GeneratedFace> {
   const response = await fetch('/api/face', { signal })
   if (!response.ok) {
     const body: { detail?: string } | null = await response.json().catch(() => null)

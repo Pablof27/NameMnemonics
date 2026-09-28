@@ -1,12 +1,16 @@
 import { Icon } from '../components/Icon'
-import { FACE_LIMITS, findLevel, LEVELS, POOL_LABELS, SECONDS_LIMITS } from '../settings'
-import { MEMORY_TIPS } from '../tips'
-import type { NamePool, Settings } from '../types'
+import { SMART_MAX, smartDifficulty } from '../game/smart'
+import { FACE_LIMITS, findLevel, LEVELS, POOL_LABELS, RECALL_LABELS, SECONDS_LIMITS } from '../settings'
+import { TECHNIQUES } from '../tips'
+import type { NamePool, RecallMode, Settings } from '../types'
 
 interface Props {
   settings: Settings
+  smartLevel: number
   onChange: (settings: Settings) => void
   onStart: () => void
+  onStartSmart: () => void
+  onBack: () => void
 }
 
 const POOL_EXAMPLES: Record<NamePool, string> = {
@@ -14,21 +18,43 @@ const POOL_EXAMPLES: Record<NamePool, string> = {
   extended: 'Mixes in rarer names like Baltasar, Genoveva or Casimiro.',
 }
 
-export function SetupScreen({ settings, onChange, onStart }: Props) {
+export function SetupScreen({ settings, smartLevel, onChange, onStart, onStartSmart, onBack }: Props) {
   const level = findLevel(settings)
   const update = (changes: Partial<Settings>) => onChange({ ...settings, ...changes })
+  const smart = smartDifficulty(smartLevel)
 
   return (
     <div className="screen setup">
-      <section className="hero">
-        <h1>Never forget a name again</h1>
-        <p>Study each face and its name against the clock, then recall them all in a random order.</p>
+      <header className="page-header">
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onBack}>
+          <Icon name="back" size={18} /> Hub
+        </button>
+        <h1>Free Practice</h1>
+        <span />
+      </header>
+
+      <section className="card smart-card">
+        <span className="mode-emoji" aria-hidden="true">
+          🧠
+        </span>
+        <div>
+          <h2>
+            Smart practice <span className="badge">Level {smartLevel}/{SMART_MAX}</span>
+          </h2>
+          <p className="muted">
+            Adapts to you. Score 85% or more and it steps up, drop below 65% and it eases off. Right now:{' '}
+            {smart.faceCount} faces · {smart.secondsPerFace}s each · {POOL_LABELS[smart.namePool].toLowerCase()}.
+          </p>
+        </div>
+        <button type="button" className="btn btn-primary btn-lg" onClick={onStartSmart}>
+          Start <Icon name="next" />
+        </button>
       </section>
 
       <section className="card">
         <fieldset>
           <legend className="section-title">
-            Difficulty {!level && <span className="badge">Custom</span>}
+            Your own rules {!level && <span className="badge">Custom</span>}
           </legend>
           <div className="levels">
             {LEVELS.map((preset, index) => (
@@ -102,12 +128,30 @@ export function SetupScreen({ settings, onChange, onStart }: Props) {
             <span className="field-help">{POOL_EXAMPLES[settings.namePool]}</span>
           </fieldset>
 
+          <fieldset className="field">
+            <legend className="field-label">Recall</legend>
+            <div className="segmented">
+              {(['typed', 'choice', 'faces'] as RecallMode[]).map((mode) => (
+                <label key={mode} data-selected={settings.recall === mode}>
+                  <input
+                    type="radio"
+                    name="recall"
+                    className="visually-hidden"
+                    checked={settings.recall === mode}
+                    onChange={() => update({ recall: mode })}
+                  />
+                  {RECALL_LABELS[mode]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
           <label className="toggle">
             <span className="toggle-text">
               <span className="field-label">Visualization hints</span>
               <span className="field-help">
                 While memorizing, shows Spanish words that sound like the name to picture it with, e.g. Raquel →
-                raqueta.
+                raqueta. Rounds without hints score ×1.2. Applies to Smart practice too.
               </span>
             </span>
             <input
@@ -125,7 +169,7 @@ export function SetupScreen({ settings, onChange, onStart }: Props) {
             Study time: <strong>{formatDuration(settings.faceCount * settings.secondsPerFace)}</strong>
           </p>
           <button type="button" className="btn btn-primary btn-lg" onClick={onStart}>
-            Start training <Icon name="next" />
+            Start <Icon name="next" />
           </button>
         </div>
       </section>
@@ -135,7 +179,7 @@ export function SetupScreen({ settings, onChange, onStart }: Props) {
           <Icon name="bulb" /> How to memorize names
         </summary>
         <ol>
-          {MEMORY_TIPS.map((tip) => (
+          {TECHNIQUES.slice(0, 4).map((tip) => (
             <li key={tip.title}>
               <strong>{tip.title}.</strong> {tip.text}
             </li>

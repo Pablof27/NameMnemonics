@@ -1,4 +1,4 @@
-import type { Difficulty, NamePool, Settings } from './types'
+import type { Difficulty, NamePool, RecallMode, Settings } from './types'
 
 export const FACE_LIMITS = { min: 3, max: 50 }
 export const SECONDS_LIMITS = { min: 1, max: 30 }
@@ -21,6 +21,14 @@ export const POOL_LABELS: Record<NamePool, string> = {
   extended: 'Rare names too',
 }
 
+export const RECALL_LABELS: Record<RecallMode, string> = {
+  typed: 'Type the name',
+  choice: 'Pick the name',
+  faces: 'Find the face',
+}
+
+const RECALL_MODES: RecallMode[] = ['typed', 'choice', 'faces']
+
 export function findLevel(settings: Settings): Level | undefined {
   return LEVELS.find(
     ({ difficulty }) =>
@@ -33,7 +41,7 @@ export function findLevel(settings: Settings): Level | undefined {
 const STORAGE_KEY = 'name-mnemonics:settings'
 
 export function loadSettings(): Settings {
-  const fallback: Settings = { ...LEVELS[0].difficulty, hints: false }
+  const fallback: Settings = { ...LEVELS[0].difficulty, hints: false, recall: 'typed' }
   try {
     const saved: Partial<Settings> = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
     return {
@@ -41,6 +49,7 @@ export function loadSettings(): Settings {
       secondsPerFace: clamp(saved.secondsPerFace, SECONDS_LIMITS, fallback.secondsPerFace),
       namePool: saved.namePool === 'extended' ? 'extended' : 'common',
       hints: saved.hints === true,
+      recall: RECALL_MODES.find((mode) => mode === saved.recall) ?? fallback.recall,
     }
   } catch {
     return fallback
