@@ -26,3 +26,7 @@ npm run dev
 ```
 
 Open http://localhost:5173.
+
+## Deploy
+
+Pushing to `main` publishes the app to GitHub Pages (https://pablof27.github.io/NameMnemonics/) through `../.github/workflows/deploy.yml`. Set **Settings → Pages → Source** to **GitHub Actions** once, and commit `public/faces` first.
